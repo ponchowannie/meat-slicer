@@ -6,8 +6,9 @@ import os
 import pandas as pd
 from socket_handler import start_server, get_data_socket
 from conveyor import initialize_arduino, start_conveyor, stop_conveyor, close_conveyor_conn, listen_to_arduino
-import time
 import threading
+import tkinter as tk
+from tkinter import messagebox
 
 ############################################################################################################
 def main(df):
@@ -36,6 +37,37 @@ def main(df):
     )
     volume_aggregator(df, slice_data=slice_data)
 
+def start_gui(df, stop_event):
+    def on_submit():
+        try:
+            num_slices = int(num_slices_entry.get())
+            if num_slices <= 1:
+                raise ValueError("Invalid number of slices")
+            cut_direction = cut_direction_var.get()
+            if cut_direction not in ["X", "Y"]:
+                raise ValueError("Invalid cutting direction")
+            set_env(cut_direction)
+            main(df, num_slices, cut_direction)
+            root.destroy()
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+    root = tk.Tk()
+    root.title("Meat Slicer Configuration")
+
+    tk.Label(root, text="Enter the number of slices:").pack()
+    num_slices_entry = tk.Entry(root)
+    num_slices_entry.pack()
+
+    tk.Label(root, text="Select the cutting direction:").pack()
+    cut_direction_var = tk.StringVar(value="X")
+    tk.Radiobutton(root, text="X", variable=cut_direction_var, value="X").pack()
+    tk.Radiobutton(root, text="Y", variable=cut_direction_var, value="Y").pack()
+
+    tk.Button(root, text="Submit", command=on_submit).pack()
+
+    root.mainloop()
+    
 # please set the filepath
 project_path = os.path.dirname(os.path.abspath(__file__))
 os.environ["filepath"] = "csv_files/eraser_data.csv"
