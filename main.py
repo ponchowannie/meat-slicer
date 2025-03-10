@@ -58,10 +58,9 @@ if __name__ == "__main__":
 
 
     stop_event = threading.Event()
-    arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event))
+    arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event,))
     arduino_thread.start()
 
     df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
     main(df)
     arduino_thread.join()
-    stop_conveyor()
