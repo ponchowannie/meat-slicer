@@ -68,7 +68,6 @@ if __name__ == "__main__":
 
     # Wait for both threads to finish
     main_thread.join()
-    stop_event.set()
     arduino_thread.join()
 
     # Start the conveyor after both threads have finished
