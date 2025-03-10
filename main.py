@@ -38,7 +38,7 @@ def main(df):
 
 # please set the filepath
 project_path = os.path.dirname(os.path.abspath(__file__))
-os.environ["filepath"] = "volume/eraser_data.csv"
+os.environ["filepath"] = "csv_files/eraser_data.csv"
 
 if __name__ == "__main__":
     # Define for testing env
@@ -47,14 +47,15 @@ if __name__ == "__main__":
     # Initialize Arduino
     initialize_arduino()
     start_conveyor()
-    time.sleep(2)
-    stop_conveyor()
     
+    # The sensor on the conveyor will auto-detect and stop the object
     if env != 'Testing':
         socket = start_server()
-        data = get_data_socket(socket)
+        df = get_data_socket(socket)
     else: # Testing
         df = pd.read_csv(os.path.join(project_path, "csv_files/eraser_data.csv"), header=None, dtype=str) 
+        df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
+
 
     stop_event = threading.Event()
     arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event))
