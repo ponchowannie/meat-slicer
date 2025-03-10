@@ -7,8 +7,7 @@ import pandas as pd
 from socket_handler import start_server, get_data_socket
 from conveyor import initialize_arduino, start_conveyor, stop_conveyor, close_conveyor_conn, listen_to_arduino
 import threading
-import tkinter as tk
-from tkinter import messagebox
+import time
 
 ############################################################################################################
 def main(df):
@@ -72,3 +71,6 @@ if __name__ == "__main__":
 
     # Start the conveyor after both threads have finished
     start_conveyor()
+    time.sleep(2)
+    stop_conveyor()
+    close_conveyor_conn()
