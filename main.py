@@ -5,8 +5,9 @@ from config import set_env
 import os
 import pandas as pd
 from socket_handler import start_server, get_data_socket
-from conveyor import initialize_arduino, start_conveyor, stop_conveyor, close_conveyor_conn
+from conveyor import initialize_arduino, start_conveyor, stop_conveyor, close_conveyor_conn, listen_to_arduino
 import time
+import threading
 
 ############################################################################################################
 def main(df):
@@ -55,8 +56,12 @@ if __name__ == "__main__":
         df = pd.read_csv(os.path.join(project_path, "csv_files/eraser_data.csv"), header=None, dtype=str) 
         df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
 
-    # Slice the piece of meat
-    main(df)
 
-    # Continue the conveyor to send the meat
+    stop_event = threading.Event()
+    arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event))
+    arduino_thread.start()
+
+    df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
+    main(df)
+    arduino_thread.join()
     stop_conveyor()

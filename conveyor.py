@@ -22,3 +22,12 @@ def stop_conveyor():
 
 def close_conveyor_conn():
     arduino.close()
+
+def listen_to_arduino(stop_event):
+    while not stop_event.is_set():
+        if arduino.in_waiting > 0:
+            message = arduino.readline().decode('utf-8').rstrip()
+            print(f"Received from Arduino: {message}")
+            if message == "DETECTED":
+                stop_conveyor()
+                stop_event.set()
