@@ -36,37 +36,6 @@ def main(df):
         num_slices=num_slices, volume=volume, cut_direction=cut_direction
     )
     volume_aggregator(df, slice_data=slice_data)
-
-def start_gui(df, stop_event):
-    def on_submit():
-        try:
-            num_slices = int(num_slices_entry.get())
-            if num_slices <= 1:
-                raise ValueError("Invalid number of slices")
-            cut_direction = cut_direction_var.get()
-            if cut_direction not in ["X", "Y"]:
-                raise ValueError("Invalid cutting direction")
-            set_env(cut_direction)
-            main(df, num_slices, cut_direction)
-            root.destroy()
-        except ValueError as e:
-            messagebox.showerror("Error", str(e))
-
-    root = tk.Tk()
-    root.title("Meat Slicer Configuration")
-
-    tk.Label(root, text="Enter the number of slices:").pack()
-    num_slices_entry = tk.Entry(root)
-    num_slices_entry.pack()
-
-    tk.Label(root, text="Select the cutting direction:").pack()
-    cut_direction_var = tk.StringVar(value="X")
-    tk.Radiobutton(root, text="X", variable=cut_direction_var, value="X").pack()
-    tk.Radiobutton(root, text="Y", variable=cut_direction_var, value="Y").pack()
-
-    tk.Button(root, text="Submit", command=on_submit).pack()
-
-    root.mainloop()
     
 # please set the filepath
 project_path = os.path.dirname(os.path.abspath(__file__))
@@ -86,13 +55,12 @@ if __name__ == "__main__":
         df = get_data_socket(socket)
     else: # Testing
         df = pd.read_csv(os.path.join(project_path, "csv_files/eraser_data.csv"), header=None, dtype=str) 
-        df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
+    df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
 
 
     stop_event = threading.Event()
     arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event,))
     arduino_thread.start()
 
-    df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
     main(df)
     arduino_thread.join()
