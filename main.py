@@ -62,5 +62,14 @@ if __name__ == "__main__":
     arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event,))
     arduino_thread.start()
 
-    main(df)
+    # Run main in a separate thread
+    main_thread = threading.Thread(target=main, args=(df,))
+    main_thread.start()
+
+    # Wait for both threads to finish
+    main_thread.join()
+    stop_event.set()
     arduino_thread.join()
+
+    # Start the conveyor after both threads have finished
+    start_conveyor()
