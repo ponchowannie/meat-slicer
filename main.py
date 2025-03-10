@@ -6,8 +6,8 @@ import os
 import pandas as pd
 from socket_handler import start_server, get_data_socket
 from conveyor import initialize_arduino, start_conveyor, stop_conveyor, close_conveyor_conn, listen_to_arduino
-import time
 import threading
+import time
 
 ############################################################################################################
 def main(df):
@@ -35,7 +35,7 @@ def main(df):
         num_slices=num_slices, volume=volume, cut_direction=cut_direction
     )
     volume_aggregator(df, slice_data=slice_data)
-
+    
 # please set the filepath
 project_path = os.path.dirname(os.path.abspath(__file__))
 os.environ["filepath"] = "csv_files/eraser_data.csv"
@@ -54,14 +54,23 @@ if __name__ == "__main__":
         df = get_data_socket(socket)
     else: # Testing
         df = pd.read_csv(os.path.join(project_path, "csv_files/eraser_data.csv"), header=None, dtype=str) 
-        df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
+    df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
 
 
     stop_event = threading.Event()
-    arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event))
+    arduino_thread = threading.Thread(target=listen_to_arduino, args=(stop_event,))
     arduino_thread.start()
 
-    df = clean_csv_file_to_df(df, x_resolution=0.178, y_resolution=0.338)
-    main(df)
+    # Run main in a separate thread
+    main_thread = threading.Thread(target=main, args=(df,))
+    main_thread.start()
+
+    # Wait for both threads to finish
+    main_thread.join()
     arduino_thread.join()
+
+    # Start the conveyor after both threads have finished
+    start_conveyor()
+    time.sleep(2)
     stop_conveyor()
+    close_conveyor_conn()
